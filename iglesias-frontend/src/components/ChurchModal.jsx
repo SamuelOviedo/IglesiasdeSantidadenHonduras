@@ -20,18 +20,14 @@ export default function ChurchModal({ mode, iglesia, onSave, onClose }) {
   }, [mode, iglesia]);
 
   function handleSubmit() {
-    console.log("handleSubmit llamado", form); // ← agrega esta línea
-    if (!form.nombre || !form.lat || !form.lng) {
-      console.log("Validación falló", form); // ← y esta
-      return;
-    }
+    if (!form.nombre || !form.lat || !form.lng) return;
     onSave({ ...form, lat: parseFloat(form.lat), lng: parseFloat(form.lng) });
   }
 
   return (
-    <div className="fixed inset-0 bg-black/30 z-1001 flex items-center justify-center">
-      <div className="bg-white rounded-2xl p-6 w-80 shadow-xl">
-        <h3 className="text-sm font-semibold text-neutral-800 mb-4">
+    <div className="fixed inset-0 bg-black/30 dark:bg-black/50 z-1001 flex items-center justify-center">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 w-80 shadow-xl">
+        <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-4">
           {mode === "add" ? "Nueva iglesia" : "Editar iglesia"}
         </h3>
 
@@ -45,7 +41,7 @@ export default function ChurchModal({ mode, iglesia, onSave, onClose }) {
           { label: "Longitud", key: "lng", placeholder: "-87.6321" },
         ].map((f) => (
           <div key={f.key} className="mb-3">
-            <label className="block text-xs text-neutral-500 mb-1">
+            <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
               {f.label}
             </label>
             <input
@@ -54,13 +50,13 @@ export default function ChurchModal({ mode, iglesia, onSave, onClose }) {
                 setForm((p) => ({ ...p, [f.key]: e.target.value }))
               }
               placeholder={f.placeholder}
-              className="w-full px-3 py-2 rounded-lg border border-neutral-200 text-sm bg-neutral-50 focus:outline-none focus:border-emerald-400"
+              className="w-full px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-sm bg-neutral-50 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500"
             />
           </div>
         ))}
 
         <div className="mb-4">
-          <label className="block text-xs text-neutral-500 mb-1">
+          <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
             Descripción
           </label>
           <textarea
@@ -70,14 +66,14 @@ export default function ChurchModal({ mode, iglesia, onSave, onClose }) {
             }
             placeholder="Opcional..."
             rows={2}
-            className="w-full px-3 py-2 rounded-lg border border-neutral-200 text-sm bg-neutral-50 focus:outline-none focus:border-emerald-400 resize-none"
+            className="w-full px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-sm bg-neutral-50 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 resize-none"
           />
         </div>
 
         <div className="flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 py-2 rounded-lg border border-neutral-200 text-sm text-neutral-500 hover:bg-neutral-50 transition-all"
+            className="flex-1 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-sm text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
           >
             Cancelar
           </button>

@@ -1,9 +1,15 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  "https://hjsitolcntkqkqpsllti.supabase.co",
-  "sb_publishable_9hL1DEWtx_O52G77yF9k3A_cyybWTji",
-);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    "Faltan las variables de entorno de Supabase. Verifica tu archivo .env",
+  );
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const getZonas = async () => {
   const { data, error } = await supabase

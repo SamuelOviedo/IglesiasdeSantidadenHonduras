@@ -2,11 +2,15 @@ import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-export default function MapView({ iglesias, selected, zonas, activeZone }) {
+const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+const TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+
+export default function MapView({ iglesias, selected, zonas, activeZone, darkMode }) {
   const mapRef = useRef(null)
   const leafRef = useRef(null)
   const markersRef = useRef([])
   const polyRef = useRef(null)
+  const tileRef = useRef(null)
 
   // Init map once
   useEffect(() => {
@@ -16,10 +20,15 @@ export default function MapView({ iglesias, selected, zonas, activeZone }) {
       attributionControl: false,
     }).setView([14.45, -87.63], 10)
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-    }).addTo(leafRef.current)
+    tileRef.current = L.tileLayer(TILE_LIGHT, { maxZoom: 19 }).addTo(leafRef.current)
   }, [])
+
+  // Switch tile layer when dark mode changes
+  useEffect(() => {
+    if (!leafRef.current || !tileRef.current) return
+    tileRef.current.remove()
+    tileRef.current = L.tileLayer(darkMode ? TILE_DARK : TILE_LIGHT, { maxZoom: 19 }).addTo(leafRef.current)
+  }, [darkMode])
 
   // Fly to zone center when zone changes
   useEffect(() => {

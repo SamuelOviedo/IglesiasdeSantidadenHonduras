@@ -18,6 +18,7 @@ export default function App() {
   const [selected, setSelected] = useState([]);
   const [modal, setModal] = useState(null); // null | 'add' | { type:'edit', iglesia }
   const [loading, setLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     getZonas().then((data) => {
@@ -62,7 +63,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-neutral-50 font-sans">
+    <div className={`flex h-screen w-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950 font-sans${darkMode ? ' dark' : ''}`}>
       <Sidebar
         zonas={zonas}
         activeZone={activeZone}
@@ -74,6 +75,8 @@ export default function App() {
         onEdit={(ig) => setModal({ type: "edit", iglesia: ig })}
         onDelete={handleDelete}
         loading={loading}
+        darkMode={darkMode}
+        onToggleDark={() => setDarkMode((d) => !d)}
       />
       <div className="flex flex-col flex-1 overflow-hidden">
         <MapView
@@ -81,6 +84,7 @@ export default function App() {
           selected={selected}
           activeZone={activeZone}
           zonas={zonas}
+          darkMode={darkMode}
         />
         <BottomBar
           iglesias={iglesias}
