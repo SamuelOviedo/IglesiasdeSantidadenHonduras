@@ -16,9 +16,11 @@ export default function MapView({ iglesias, selected, zonas, activeZone, darkMod
   useEffect(() => {
     if (leafRef.current) return
     leafRef.current = L.map(mapRef.current, {
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: false,
     }).setView([14.45, -87.63], 10)
+
+    L.control.zoom({ position: 'bottomright' }).addTo(leafRef.current)
 
     tileRef.current = L.tileLayer(TILE_LIGHT, { maxZoom: 19 }).addTo(leafRef.current)
   }, [])

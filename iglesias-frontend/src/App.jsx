@@ -92,7 +92,7 @@ export default function App() {
       <div className="flex flex-col flex-1 overflow-hidden relative">
         {/* Mobile hamburger button */}
         <button
-          className="absolute bottom-16 left-3 z-30 md:hidden bg-white dark:bg-neutral-800 rounded-lg p-2 shadow-md text-neutral-600 dark:text-neutral-300"
+          className="absolute top-3 left-3 z-30 md:hidden bg-white dark:bg-neutral-800 rounded-lg p-2 shadow-md text-neutral-600 dark:text-neutral-300"
           onClick={() => setSidebarOpen(true)}
           title="Abrir menú"
         >
