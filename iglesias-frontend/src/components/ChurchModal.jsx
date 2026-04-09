@@ -35,7 +35,7 @@ export default function ChurchModal({ mode, iglesia, onSave, onClose }) {
           {
             label: "Nombre",
             key: "nombre",
-            placeholder: "Iglesia El Calvario",
+            placeholder: "Iglesia de Santidad (Nombre)",
           },
           { label: "Latitud", key: "lat", placeholder: "14.4505" },
           { label: "Longitud", key: "lng", placeholder: "-87.6321" },
