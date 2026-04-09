@@ -26,7 +26,7 @@ export default function ChurchModal({ mode, iglesia, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/30 dark:bg-black/50 z-1001 flex items-center justify-center">
-      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 w-80 shadow-xl">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 w-[calc(100vw-2rem)] max-w-sm shadow-xl">
         <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-4">
           {mode === "add" ? "Nueva iglesia" : "Editar iglesia"}
         </h3>

@@ -11,9 +11,17 @@ export default function Sidebar({
   loading,
   darkMode,
   onToggleDark,
+  isOpen,
+  onClose,
 }) {
   return (
-    <aside className="w-72 h-full bg-white dark:bg-neutral-900 border-r border-neutral-100 dark:border-neutral-800 flex flex-col">
+    <aside className={`
+      fixed left-0 top-0 h-full z-50 w-[85vw] max-w-xs
+      md:relative md:z-auto md:w-72 md:translate-x-0
+      transform transition-transform duration-300 ease-in-out
+      ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      bg-white dark:bg-neutral-900 border-r border-neutral-100 dark:border-neutral-800 flex flex-col
+    `}>
       <div className="px-5 py-4 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center">
         <div>
           <p className="text-xs font-semibold tracking-widest text-neutral-400 dark:text-neutral-500 uppercase">
@@ -23,6 +31,7 @@ export default function Sidebar({
             Honduras
           </p>
         </div>
+        <div className="flex items-center gap-1">
         <button
           onClick={onToggleDark}
           title={darkMode ? "Modo día" : "Modo noche"}
@@ -46,6 +55,17 @@ export default function Sidebar({
             </svg>
           )}
         </button>
+        <button
+          onClick={onClose}
+          title="Cerrar"
+          className="md:hidden p-1.5 rounded-lg text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        </div>
       </div>
 
       {/* Zone switcher */}

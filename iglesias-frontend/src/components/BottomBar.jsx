@@ -26,9 +26,17 @@ export default function BottomBar({ iglesias, selected, onClear }) {
         </>
       ) : (
         <span className="text-xs text-neutral-400 dark:text-neutral-500">
-          {selected.length === 1
-            ? 'Selecciona otra iglesia para calcular la distancia'
-            : 'Selecciona 2 o más iglesias del panel para medir distancias'}
+          {selected.length === 1 ? (
+            <>
+              <span className="hidden sm:inline">Selecciona otra iglesia para calcular la distancia</span>
+              <span className="sm:hidden">Selecciona otra iglesia</span>
+            </>
+          ) : (
+            <>
+              <span className="hidden sm:inline">Selecciona 2 o más iglesias del panel para medir distancias</span>
+              <span className="sm:hidden">Selecciona 2+ iglesias para medir</span>
+            </>
+          )}
         </span>
       )}
     </div>
