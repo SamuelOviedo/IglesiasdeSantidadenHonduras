@@ -1,21 +1,15 @@
-import { totalDistance } from '../utils/haversine'
-
 export default function BottomBar({ iglesias, selected, onClear }) {
-  const selectedIgs = selected
-    .map(id => iglesias.find(i => i.id == id))
-    .filter(Boolean)
-
-  const dist = selectedIgs.length > 1 ? totalDistance(selectedIgs) : null
+  const selectedIg = selected ? iglesias.find((i) => i.id === selected) : null;
 
   return (
     <div className="h-14 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 flex items-center px-6 gap-4">
-      {dist !== null ? (
+      {selectedIg ? (
         <>
           <span className="text-sm text-neutral-400 dark:text-neutral-500">
-            Distancia total ({selectedIgs.length} iglesias):
+            Iglesia seleccionada:
           </span>
           <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-            {dist.toFixed(2)} km
+            {selectedIg.nombre}
           </span>
           <button
             onClick={onClear}
@@ -26,19 +20,9 @@ export default function BottomBar({ iglesias, selected, onClear }) {
         </>
       ) : (
         <span className="text-xs text-neutral-400 dark:text-neutral-500">
-          {selected.length === 1 ? (
-            <>
-              <span className="hidden sm:inline">Selecciona otra iglesia para calcular la distancia</span>
-              <span className="sm:hidden">Selecciona otra iglesia</span>
-            </>
-          ) : (
-            <>
-              <span className="hidden sm:inline">Selecciona 2 o más iglesias del panel para medir distancias</span>
-              <span className="sm:hidden">Selecciona 2+ iglesias para medir</span>
-            </>
-          )}
+          Selecciona una iglesia para ver la ruta desde tu ubicación
         </span>
       )}
     </div>
-  )
+  );
 }
