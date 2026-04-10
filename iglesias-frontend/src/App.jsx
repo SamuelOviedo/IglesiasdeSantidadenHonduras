@@ -15,11 +15,7 @@ export default function App() {
   const [zonas, setZonas] = useState([]);
   const [activeZone, setActiveZone] = useState(null);
   const [iglesias, setIglesias] = useState([]);
-  const [selected, setSelected] = useState({
-    origin: null,
-    destination: null,
-    useUserLocation: false,
-  });
+  const [selected, setSelected] = useState({ origin: null, destination: null });
   const [modal, setModal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -34,7 +30,7 @@ export default function App() {
 
   useEffect(() => {
     if (!activeZone) return;
-    setSelected({ origin: null, destination: null, useUserLocation: false });
+    setSelected({ origin: null, destination: null });
     setLoading(true);
     getIglesias(activeZone).then((data) => {
       setIglesias(data);
@@ -56,16 +52,7 @@ export default function App() {
     }));
   }
 
-  function toggleUserLocation() {
-    setSelected((prev) => ({
-      ...prev,
-      useUserLocation: !prev.useUserLocation,
-      origin: prev.useUserLocation ? null : prev.origin,
-    }));
-  }
-
   async function handleSave(formData) {
-    console.log("handleSave llamado", formData);
     if (modal === "add") {
       await createIglesia({ ...formData, zona_id: activeZone });
     } else {
@@ -91,9 +78,9 @@ export default function App() {
     <div
       className={`flex h-screen w-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950 font-sans ${darkMode ? "dark" : ""}`}
     >
-      {/* 1. Botón Hamburguesa (Solo Móvil) */}
+      {/* Botón Hamburguesa (Solo Móvil) */}
       <button
-        className="absolute top-3 left-3 md:hidden bg-white dark:bg-neutral-800 rounded-lg p-2 shadow-md text-neutral-600 dark:text-neutral-300"
+        className="absolute top-3 left-3 md:hidden bg-white dark:bg-neutral-800 rounded-lg p-2 shadow-md text-neutral-600 dark:text-neutral-300 transition-all active:scale-95"
         style={{ zIndex: 1000 }}
         onClick={() => setSidebarOpen(true)}
         title="Abrir menú"
@@ -114,17 +101,17 @@ export default function App() {
         </svg>
       </button>
 
-      {/* 2. Fondo oscuro / Backdrop (Solo Móvil) */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 md:hidden transition-opacity"
-          style={{ zIndex: 9998 }}
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Fondo oscuro / Backdrop — siempre renderizado, animado con opacidad */}
+      <div
+        className={`fixed inset-0 bg-black/40 md:hidden transition-opacity duration-300 ${
+          sidebarOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+        style={{ zIndex: 9998 }}
+        onClick={() => setSidebarOpen(false)}
+      />
 
-      {/* 3. Componente Sidebar (Faltaba renderizarlo) */}
-      {/* Dependiendo de cómo esté construido tu Sidebar, deberás pasarle el estado */}
       <Sidebar
         zonas={zonas}
         activeZone={activeZone}
@@ -136,7 +123,6 @@ export default function App() {
         selected={selected}
         onSetDestination={setDestination}
         onSetOrigin={setOrigin}
-        onToggleUserLocation={toggleUserLocation}
         onAdd={() => {
           setModal("add");
           setSidebarOpen(false);
@@ -153,8 +139,8 @@ export default function App() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* 4. Contenedor Principal (Mapa y BottomBar) */}
-      <div className="flex-1 relative flex flex-col h-full w-full">
+      {/* Contenedor Principal */}
+      <div className="flex-1 relative flex flex-col h-full w-full min-w-0">
         <MapView
           iglesias={iglesias}
           selected={selected}
@@ -173,7 +159,6 @@ export default function App() {
         />
       </div>
 
-      {/* 5. Modales (Fuera del flujo del layout principal) */}
       {modal && (
         <ChurchModal
           mode={modal === "add" ? "add" : "edit"}

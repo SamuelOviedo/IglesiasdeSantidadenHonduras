@@ -12,7 +12,6 @@ export default function MapView({
   darkMode,
   onSetDestination,
 }) {
-  const [userLocation, setUserLocation] = useState(null);
   const [route, setRoute] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
   const [loadingRoute, setLoadingRoute] = useState(false);
@@ -20,86 +19,49 @@ export default function MapView({
   const [toastMessage, setToastMessage] = useState("");
   const mapRef = useRef();
 
-  // Get user location only if enabled
-  useEffect(() => {
-    if (!selected.useUserLocation) {
-      setUserLocation(null);
-      return;
-    }
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          setToastMessage("No se pudo obtener tu ubicación");
-          setShowToast(true);
-          setTimeout(() => setShowToast(false), 5000);
-        },
-      );
-    }
-  }, [selected.useUserLocation]);
-
-  // Get route when destination and origin are set
+  // Calculate route when origin + destination are set
   useEffect(() => {
     if (!selected.destination) {
       setRoute(null);
       setRouteInfo(null);
       return;
     }
-    let start = null;
-    if (selected.useUserLocation && userLocation) {
-      start = userLocation;
-    } else if (selected.origin) {
-      const iglesia = iglesias.find((ig) => ig.id === selected.origin);
-      if (iglesia) start = { lat: iglesia.lat, lng: iglesia.lng };
-    }
-    if (!start) {
+    if (!selected.origin) {
       setRoute(null);
       setRouteInfo(null);
       return;
     }
+    const iglesiaOrigin = iglesias.find((ig) => ig.id === selected.origin);
     const iglesiaDest = iglesias.find((ig) => ig.id === selected.destination);
-    if (!iglesiaDest) return;
+    if (!iglesiaOrigin || !iglesiaDest) return;
 
     setLoadingRoute(true);
-    getRoute(start, { lat: iglesiaDest.lat, lng: iglesiaDest.lng });
-  }, [selected, userLocation, iglesias]);
+    getRoute(
+      { lat: iglesiaOrigin.lat, lng: iglesiaOrigin.lng },
+      { lat: iglesiaDest.lat, lng: iglesiaDest.lng }
+    );
+  }, [selected, iglesias]);
 
-  // Get route from Mapbox Directions API
   async function getRoute(start, end) {
     try {
-      const query = await fetch(
+      const res = await fetch(
         `https://api.mapbox.com/directions/v5/mapbox/driving/${start.lng},${start.lat};${end.lng},${end.lat}?steps=true&geometries=geojson&access_token=${MAPBOX_TOKEN}`,
-        { method: "GET" },
+        { method: "GET" }
       );
-      const json = await query.json();
-      console.log("Mapbox Directions API Response:", json); // Log completo del JSON
-      if (!json.routes || json.routes.length === 0) {
-        throw new Error("No route found");
-      }
+      const json = await res.json();
+      if (!json.routes || json.routes.length === 0) throw new Error("No route found");
       const data = json.routes[0];
-      const route = data.geometry.coordinates;
-      const geojson = {
+      setRoute({
         type: "Feature",
         properties: {},
-        geometry: {
-          type: "LineString",
-          coordinates: route,
-        },
-      };
-      setRoute(geojson);
-      setRouteInfo({
-        distance: (data.distance / 1000).toFixed(2), // km
-        duration: Math.round(data.duration / 60), // minutes
+        geometry: { type: "LineString", coordinates: data.geometry.coordinates },
       });
-    } catch (error) {
-      console.error("Error fetching route:", error);
-      setToastMessage("No se pudo calcular la ruta vial para este destino");
+      setRouteInfo({
+        distance: (data.distance / 1000).toFixed(2),
+        duration: Math.round(data.duration / 60),
+      });
+    } catch {
+      setToastMessage("No se pudo calcular la ruta para este destino");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 5000);
     } finally {
@@ -107,7 +69,7 @@ export default function MapView({
     }
   }
 
-  // Fly to zone center
+  // Fly to zone center when zone changes
   useEffect(() => {
     if (!activeZone || !mapRef.current) return;
     const zona = zonas.find((z) => z.id === activeZone);
@@ -124,29 +86,18 @@ export default function MapView({
     ? "mapbox://styles/mapbox/dark-v11"
     : "mapbox://styles/mapbox/light-v11";
 
+  const originName = iglesias.find((ig) => ig.id === selected.origin)?.nombre;
+  const destName = iglesias.find((ig) => ig.id === selected.destination)?.nombre;
+
   return (
-    <div className="flex-1 w-full relative">
+    <div className="flex-1 w-full relative min-h-0">
       <Map
         ref={mapRef}
-        initialViewState={{
-          longitude: -86,
-          latitude: 15,
-          zoom: 8,
-        }}
+        initialViewState={{ longitude: -86, latitude: 15, zoom: 8 }}
         style={{ width: "100%", height: "100%" }}
         mapStyle={mapStyle}
         mapboxAccessToken={MAPBOX_TOKEN}
       >
-        {/* User location marker (only if using user location) */}
-        {selected.useUserLocation && userLocation && (
-          <Marker
-            longitude={userLocation.lng}
-            latitude={userLocation.lat}
-            color="red"
-          />
-        )}
-
-        {/* Church markers */}
         {iglesias.map((ig) => (
           <Marker
             key={ig.id}
@@ -154,68 +105,65 @@ export default function MapView({
             latitude={ig.lat}
             color={
               selected.origin === ig.id
-                ? "blue"
+                ? "#3b82f6"
                 : selected.destination === ig.id
                   ? "#10b981"
-                  : "#3b82f6"
+                  : "#60a5fa"
             }
             onClick={() => onSetDestination(ig.id)}
           />
         ))}
 
-        {/* Route */}
         {route && (
           <Source id="route" type="geojson" data={route}>
             <Layer
               id="route"
               type="line"
               source="route"
-              layout={{
-                "line-join": "round",
-                "line-cap": "round",
-              }}
-              paint={{
-                "line-color": "#10b981",
-                "line-width": 4,
-                "line-opacity": 0.8,
-              }}
+              layout={{ "line-join": "round", "line-cap": "round" }}
+              paint={{ "line-color": "#10b981", "line-width": 4, "line-opacity": 0.85 }}
             />
           </Source>
         )}
       </Map>
 
       {/* Route info panel */}
-      {routeInfo && selected.destination && (
-        <div className="absolute top-4 right-4 bg-white dark:bg-neutral-900 rounded-lg p-4 shadow-lg max-w-xs">
-          <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-2">
-            Ruta desde{" "}
-            {selected.useUserLocation
-              ? "tu ubicación"
-              : iglesias.find((ig) => ig.id === selected.origin)?.nombre ||
-                "origen desconocido"}{" "}
-            hasta{" "}
-            {iglesias.find((ig) => ig.id === selected.destination)?.nombre}
-          </h3>
-          <p className="text-xs text-neutral-600 dark:text-neutral-400">
-            Distancia: {routeInfo.distance} km
+      {routeInfo && selected.destination && !loadingRoute && (
+        <div className="absolute top-4 right-4 bg-white dark:bg-neutral-900 rounded-xl p-3 shadow-lg w-[min(220px,calc(100vw-5rem))] animate-slide-in-right">
+          <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-200 leading-snug mb-2 line-clamp-2">
+            {originName ?? "—"} → {destName ?? "—"}
           </p>
-          <p className="text-xs text-neutral-600 dark:text-neutral-400">
-            Tiempo estimado: {routeInfo.duration} min
-          </p>
+          <div className="flex gap-3">
+            <div>
+              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Distancia</p>
+              <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
+                {routeInfo.distance} km
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Tiempo est.</p>
+              <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
+                {routeInfo.duration} min
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Loading state */}
+      {/* Loading indicator */}
       {loadingRoute && (
-        <div className="absolute top-4 right-4 bg-blue-500 text-white rounded-lg p-4 shadow-lg max-w-xs">
-          <p className="text-sm font-semibold">Calculando ruta...</p>
+        <div className="absolute top-4 right-4 bg-white dark:bg-neutral-900 rounded-xl px-4 py-3 shadow-lg animate-slide-in-right flex items-center gap-2">
+          <div className="w-3.5 h-3.5 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
+          <p className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+            Calculando ruta...
+          </p>
         </div>
       )}
 
       {/* Error toast */}
       {showToast && (
-        <div className="absolute bottom-4 right-4 bg-red-500 text-white rounded-lg p-4 shadow-lg max-w-xs">
-          <p className="text-sm font-semibold">{toastMessage}</p>
+        <div className="absolute bottom-20 right-4 bg-neutral-800 dark:bg-neutral-700 text-white rounded-xl px-4 py-3 shadow-lg max-w-[calc(100vw-2rem)] animate-slide-up">
+          <p className="text-xs font-medium">{toastMessage}</p>
         </div>
       )}
     </div>
