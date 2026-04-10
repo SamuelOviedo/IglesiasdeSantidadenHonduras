@@ -4,7 +4,9 @@ export default function Sidebar({
   onZoneChange,
   iglesias,
   selected,
-  onToggleMeasure,
+  onSetDestination,
+  onSetOrigin,
+  onToggleUserLocation,
   onAdd,
   onEdit,
   onDelete,
@@ -21,7 +23,7 @@ export default function Sidebar({
       md:relative md:z-auto md:w-72 md:translate-x-0
       transform transition-transform duration-300 ease-in-out
       ${isOpen ? "translate-x-0" : "-translate-x-full"}
-      bg-white dark:bg-neutral-900 border-r border-neutral-100 dark:border-neutral-800 shadow-2xl flex flex-col
+      bg-white dark:bg-neutral-900 border-r border-neutral-100 dark:border-neutral-800 shadow-2xl flex flex-col overflow-x-hidden
     `}
       style={{ zIndex: 9999 }}
     >
@@ -98,13 +100,29 @@ export default function Sidebar({
         </div>
       </div>
 
+      {/* User location toggle */}
+      <div className="px-3 py-2 border-b border-neutral-100 dark:border-neutral-800">
+        <button
+          onClick={onToggleUserLocation}
+          className={`w-full text-xs py-2 rounded-md border transition-all ${
+            selected.useUserLocation
+              ? "border-blue-400 text-blue-700 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400"
+              : "border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+          }`}
+        >
+          {selected.useUserLocation
+            ? "✓ Usando mi ubicación"
+            : "Usar mi ubicación actual"}
+        </button>
+      </div>
+
       {/* Zone switcher */}
       <div className="px-3 py-3 border-b border-neutral-100 dark:border-neutral-800 flex flex-col gap-1">
         {zonas.map((z) => (
           <button
             key={z.id}
             onClick={() => onZoneChange(z.id)}
-            className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-all truncate ${
               activeZone === z.id
                 ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
                 : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800"
@@ -116,7 +134,7 @@ export default function Sidebar({
       </div>
 
       {/* Church list */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2">
+      <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-y-4 w-full">
         {loading ? (
           <p className="text-xs text-neutral-400 dark:text-neutral-500 text-center mt-8">
             Cargando...
@@ -129,13 +147,15 @@ export default function Sidebar({
           iglesias.map((ig) => (
             <div
               key={ig.id}
-              className={`rounded-xl border p-3 transition-all ${
-                selected.includes(ig.id)
-                  ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20"
-                  : "border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-800/50 hover:border-neutral-200 dark:hover:border-neutral-700"
+              className={`w-full rounded-xl border p-3 transition-all ${
+                selected.origin === ig.id
+                  ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                  : selected.destination === ig.id
+                    ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20"
+                    : "border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-800/50 hover:border-neutral-200 dark:hover:border-neutral-700"
               }`}
             >
-              <p className="text-sm font-medium text-neutral-800 dark:text-neutral-100">
+              <p className="text-sm font-medium text-neutral-800 dark:text-neutral-100 truncate">
                 {ig.nombre}
               </p>
               <p className="text-xs text-neutral-400 dark:text-neutral-500 font-mono mt-0.5">
@@ -148,14 +168,24 @@ export default function Sidebar({
               )}
               <div className="flex gap-2 mt-2">
                 <button
-                  onClick={() => onToggleMeasure(ig.id)}
-                  className={`text-xs px-2.5 py-1 rounded-md border transition-all ${
-                    selected.includes(ig.id)
+                  onClick={() => onSetOrigin(ig.id)}
+                  className={`text-xs px-2 py-1 rounded-md border transition-all ${
+                    selected.origin === ig.id
+                      ? "border-blue-400 text-blue-700 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400"
+                      : "border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  }`}
+                >
+                  {selected.origin === ig.id ? "✓ Origen" : "Origen"}
+                </button>
+                <button
+                  onClick={() => onSetDestination(ig.id)}
+                  className={`text-xs px-2 py-1 rounded-md border transition-all ${
+                    selected.destination === ig.id
                       ? "border-emerald-400 text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400"
                       : "border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                   }`}
                 >
-                  {selected.includes(ig.id) ? "✓ Selec." : "Medir"}
+                  {selected.destination === ig.id ? "✓ Destino" : "Destino"}
                 </button>
                 <button
                   onClick={() => onEdit(ig)}

@@ -15,7 +15,11 @@ export default function App() {
   const [zonas, setZonas] = useState([]);
   const [activeZone, setActiveZone] = useState(null);
   const [iglesias, setIglesias] = useState([]);
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState({
+    origin: null,
+    destination: null,
+    useUserLocation: false,
+  });
   const [modal, setModal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -30,7 +34,7 @@ export default function App() {
 
   useEffect(() => {
     if (!activeZone) return;
-    setSelected([]);
+    setSelected({ origin: null, destination: null, useUserLocation: false });
     setLoading(true);
     getIglesias(activeZone).then((data) => {
       setIglesias(data);
@@ -38,10 +42,26 @@ export default function App() {
     });
   }, [activeZone]);
 
-  function toggleMeasure(id) {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+  function setDestination(id) {
+    setSelected((prev) => ({
+      ...prev,
+      destination: prev.destination === id ? null : id,
+    }));
+  }
+
+  function setOrigin(id) {
+    setSelected((prev) => ({
+      ...prev,
+      origin: prev.origin === id ? null : id,
+    }));
+  }
+
+  function toggleUserLocation() {
+    setSelected((prev) => ({
+      ...prev,
+      useUserLocation: !prev.useUserLocation,
+      origin: prev.useUserLocation ? null : prev.origin,
+    }));
   }
 
   async function handleSave(formData) {
@@ -60,7 +80,11 @@ export default function App() {
     if (!confirm("¿Eliminar esta iglesia?")) return;
     await deleteIglesia(id);
     setIglesias((prev) => prev.filter((i) => i.id !== id));
-    setSelected((prev) => prev.filter((x) => x !== id));
+    setSelected((prev) => ({
+      ...prev,
+      origin: prev.origin === id ? null : prev.origin,
+      destination: prev.destination === id ? null : prev.destination,
+    }));
   }
 
   return (
@@ -110,7 +134,9 @@ export default function App() {
         }}
         iglesias={iglesias}
         selected={selected}
-        onToggleMeasure={toggleMeasure}
+        onSetDestination={setDestination}
+        onSetOrigin={setOrigin}
+        onToggleUserLocation={toggleUserLocation}
         onAdd={() => {
           setModal("add");
           setSidebarOpen(false);
@@ -135,12 +161,15 @@ export default function App() {
           activeZone={activeZone}
           zonas={zonas}
           darkMode={darkMode}
+          onSetDestination={setDestination}
         />
 
         <BottomBar
           iglesias={iglesias}
-          selected={selected}
-          onClear={() => setSelected([])}
+          selected={selected.destination}
+          onClear={() =>
+            setSelected((prev) => ({ ...prev, destination: null }))
+          }
         />
       </div>
 
