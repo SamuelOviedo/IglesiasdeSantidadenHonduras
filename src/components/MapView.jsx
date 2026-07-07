@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Map, { Marker, Source, Layer } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+import { MAPBOX_TOKEN, MAP_STYLES, getRoute } from "../utils/routing";
 
 export default function MapView({
   iglesias,
@@ -67,36 +66,15 @@ export default function MapView({
     if (!iglesiaDest) return;
 
     setLoadingRoute(true);
-    getRoute(start, { lat: iglesiaDest.lat, lng: iglesiaDest.lng });
+    loadRoute(start, { lat: iglesiaDest.lat, lng: iglesiaDest.lng });
   }, [selected, userLocation, iglesias]);
 
-  // Get route from Mapbox Directions API
-  async function getRoute(start, end) {
+  // Llama a la lógica central de routing y refleja el resultado en el estado.
+  async function loadRoute(start, end) {
     try {
-      const query = await fetch(
-        `https://api.mapbox.com/directions/v5/mapbox/driving/${start.lng},${start.lat};${end.lng},${end.lat}?steps=true&geometries=geojson&access_token=${MAPBOX_TOKEN}`,
-        { method: "GET" },
-      );
-      const json = await query.json();
-      console.log("Mapbox Directions API Response:", json); // Log completo del JSON
-      if (!json.routes || json.routes.length === 0) {
-        throw new Error("No route found");
-      }
-      const data = json.routes[0];
-      const route = data.geometry.coordinates;
-      const geojson = {
-        type: "Feature",
-        properties: {},
-        geometry: {
-          type: "LineString",
-          coordinates: route,
-        },
-      };
+      const { geojson, info } = await getRoute(start, end);
       setRoute(geojson);
-      setRouteInfo({
-        distance: (data.distance / 1000).toFixed(2), // km
-        duration: Math.round(data.duration / 60), // minutes
-      });
+      setRouteInfo(info);
     } catch (error) {
       console.error("Error fetching route:", error);
       setToastMessage("No se pudo calcular la ruta vial para este destino");
@@ -120,9 +98,7 @@ export default function MapView({
     }
   }, [activeZone, zonas]);
 
-  const mapStyle = darkMode
-    ? "mapbox://styles/mapbox/dark-v11"
-    : "mapbox://styles/mapbox/light-v11";
+  const mapStyle = darkMode ? MAP_STYLES.dark : MAP_STYLES.light;
 
   return (
     <div className="flex-1 w-full relative">
