@@ -1,16 +1,73 @@
-# React + Vite
+# Iglesias de Santidad en Honduras
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web para explorar en un mapa interactivo las **Iglesias de Santidad de Honduras**, organizadas por zona, con cálculo de rutas de manejo entre iglesias o desde tu ubicación actual.
 
-Currently, two official plugins are available:
+## ¿Qué hace?
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- 🗺️ **Mapa interactivo** (Mapbox GL) con las iglesias marcadas por zona.
+- 📍 **Zonas geográficas**: al elegir una zona el mapa vuela a su centro y lista sus iglesias.
+- 🚗 **Cálculo de rutas** de manejo (Mapbox Directions API) entre dos iglesias, o desde tu ubicación GPS hasta una iglesia, mostrando distancia (km) y tiempo estimado (min).
+- ✏️ **Administración (CRUD)**: crear, editar y eliminar iglesias, persistidas en Supabase.
+- 🌙 **Modo claro / oscuro** y diseño responsive (barra lateral en escritorio, menú hamburguesa en móvil).
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Capa | Tecnología |
+|------|-----------|
+| UI | React 19 + Vite |
+| Estilos | Tailwind CSS 4 |
+| Mapa / rutas | Mapbox GL (`react-map-gl`) + Directions API |
+| Datos | Supabase (Postgres) |
+| Lint | ESLint 9 |
 
-## Expanding the ESLint configuration
+## Estructura
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+src/
+├─ App.jsx              # Orquesta estado global (zonas, iglesias, selección, modales)
+├─ components/
+│  ├─ MapView.jsx       # Mapa, marcadores y renderizado de la ruta
+│  ├─ Sidebar.jsx       # Selector de zona, lista de iglesias, controles
+│  ├─ ChurchModal.jsx   # Formulario de alta/edición de iglesias
+│  └─ BottomBar.jsx     # Barra inferior con el destino seleccionado
+└─ utils/               # Lógica central (fuera de la UI)
+   ├─ api.js            # Acceso a datos Supabase (zonas + CRUD de iglesias)
+   └─ routing.js        # Mapbox: token, estilos de mapa y cálculo de rutas
+```
+
+## Configuración
+
+Requiere Node.js 18+.
+
+1. Instala dependencias:
+
+   ```bash
+   npm install
+   ```
+
+2. Crea un archivo `.env` a partir de la plantilla y completa tus credenciales:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   ```env
+   VITE_MAPBOX_TOKEN=tu_token_de_mapbox
+   VITE_SUPABASE_URL=tu_url_de_supabase
+   VITE_SUPABASE_ANON_KEY=tu_anon_key_de_supabase
+   ```
+
+   > `.env` está en `.gitignore`; nunca lo subas al repositorio.
+
+3. Base de datos (Supabase): la app espera dos tablas.
+   - `zonas`: `id`, `nombre`, `lat_centro`, `lng_centro`
+   - `iglesias`: `id`, `zona_id`, `nombre`, `lat`, `lng`, `descripcion`
+
+## Scripts
+
+```bash
+npm run dev       # Servidor de desarrollo (Vite + HMR)
+npm run build     # Build de producción
+npm run preview   # Previsualiza el build
+npm run lint      # ESLint
+```
