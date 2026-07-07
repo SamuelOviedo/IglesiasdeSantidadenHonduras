@@ -2,8 +2,6 @@ import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } fro
 import Sidebar from "./components/Sidebar";
 import BottomSheet from "./components/BottomSheet";
 import PanelContent from "./components/PanelContent";
-import ChurchWizard from "./components/ChurchWizard";
-import ZoneManager from "./components/ZoneManager";
 import Icon from "./components/ui/Icon";
 import { useChurchData } from "./hooks/useChurchData";
 import { useGeolocation } from "./hooks/useGeolocation";
@@ -11,6 +9,9 @@ import { useToast } from "./context/ToastContext";
 
 // El mapa (mapbox-gl es pesado) se carga de forma diferida / code-splitting.
 const MapView = lazy(() => import("./components/MapView"));
+// Componentes de administración: solo se descargan cuando se usan.
+const ChurchWizard = lazy(() => import("./components/ChurchWizard"));
+const ZoneManager = lazy(() => import("./components/ZoneManager"));
 
 function MapFallback() {
   return (
@@ -353,38 +354,42 @@ export default function App() {
           </BottomSheet>
         )}
 
-        {/* Asistente de iglesia (oculto mientras se elige punto en el mapa) */}
-        {wizard && (
-          <div className={picking ? "hidden" : ""}>
-            <ChurchWizard
-              mode={wizard.mode}
-              church={wizard.church}
-              prefillCoords={wizard.prefillCoords}
-              zonas={data.zonas}
-              activeZone={data.activeZone}
-              onClose={() => setWizard(null)}
-              onSave={saveChurch}
-              requestMapPick={requestMapPick}
-              requestGps={gps.request}
-              onPreviewLocation={(lng, lat) => focusMap(lng, lat, 15)}
-            />
-          </div>
-        )}
+        {/* Modales de administración: chunks diferidos, sin fallback visible
+            (son pequeños y se muestran al terminar de cargar). */}
+        <Suspense fallback={null}>
+          {/* Asistente de iglesia (oculto mientras se elige punto en el mapa) */}
+          {wizard && (
+            <div className={picking ? "hidden" : ""}>
+              <ChurchWizard
+                mode={wizard.mode}
+                church={wizard.church}
+                prefillCoords={wizard.prefillCoords}
+                zonas={data.zonas}
+                activeZone={data.activeZone}
+                onClose={() => setWizard(null)}
+                onSave={saveChurch}
+                requestMapPick={requestMapPick}
+                requestGps={gps.request}
+                onPreviewLocation={(lng, lat) => focusMap(lng, lat, 15)}
+              />
+            </div>
+          )}
 
-        {/* Gestión de zonas */}
-        {zoneManagerOpen && (
-          <div className={picking ? "hidden" : ""}>
-            <ZoneManager
-              zonas={data.zonas}
-              counts={data.counts}
-              onClose={() => setZoneManagerOpen(false)}
-              onCreate={data.addZone}
-              onUpdate={data.editZone}
-              onDelete={data.removeZone}
-              requestMapPick={requestMapPick}
-            />
-          </div>
-        )}
+          {/* Gestión de zonas */}
+          {zoneManagerOpen && (
+            <div className={picking ? "hidden" : ""}>
+              <ZoneManager
+                zonas={data.zonas}
+                counts={data.counts}
+                onClose={() => setZoneManagerOpen(false)}
+                onCreate={data.addZone}
+                onUpdate={data.editZone}
+                onDelete={data.removeZone}
+                requestMapPick={requestMapPick}
+              />
+            </div>
+          )}
+        </Suspense>
       </div>
     </div>
   );
